@@ -12,13 +12,10 @@ redis.pkg-path = "redis"
 kubectl.pkg-path = "kubectl"
 kind.pkg-path = "kind"
 
-[hook]
-on-activate = '''
 # ============================================================================
 # AIRFLOW VERSION CONFIGURATION
 # ============================================================================
 # Choose your Airflow version by uncommenting ONE block below.
-# Or override at runtime: AIRFLOW_VERSION=2.11.0 flox activate
 #
 # Supported versions:
 #   3.1.1  - Latest stable (Active Support) - RECOMMENDED
@@ -26,34 +23,26 @@ on-activate = '''
 #   2.10.5 - For Python 3.8 users (Limited Support until April 2026)
 #
 # IMPORTANT: Only uncomment ONE version block!
+# To change version: Edit this section, then rebuild with `flox build`
 # ============================================================================
-
+[vars]
 # Airflow 3.1.1 (Latest - Active Support - RECOMMENDED)
-# Released: October 27, 2025
-# Python: 3.9, 3.10, 3.11, 3.12
-# K8s Provider: 10.8.2
-export AIRFLOW_VERSION="${AIRFLOW_VERSION:-3.1.1}"
-export PYTHON_VERSION="${PYTHON_VERSION:-3.11}"
+# Released: October 27, 2025 | Python: 3.9-3.12 | K8s Provider: 10.8.2
+AIRFLOW_VERSION = "3.1.1"
+PYTHON_VERSION = "3.11"
 
 # # Airflow 2.11.0 (Latest 2.x - Limited Support until April 2026)
-# # Released: May 20, 2025
-# # Python: 3.9, 3.10, 3.11, 3.12 (NO Python 3.8!)
-# # K8s Provider: 10.5.0
-# # Breaking changes from 2.10: Drops Python 3.8, removes deprecated features
-# export AIRFLOW_VERSION="${AIRFLOW_VERSION:-2.11.0}"
-# export PYTHON_VERSION="${PYTHON_VERSION:-3.11}"
+# # Released: May 20, 2025 | Python: 3.9-3.12 (NO 3.8!) | K8s Provider: 10.5.0
+# AIRFLOW_VERSION = "2.11.0"
+# PYTHON_VERSION = "3.11"
 
 # # Airflow 2.10.5 (For Python 3.8 users - Limited Support until April 2026)
-# # Released: February 6, 2025
-# # Python: 3.8, 3.9, 3.10, 3.11, 3.12
-# # K8s Provider: 8.4.x
-# # Use this if you need Python 3.8 support
-# export AIRFLOW_VERSION="${AIRFLOW_VERSION:-2.10.5}"
-# export PYTHON_VERSION="${PYTHON_VERSION:-3.11}"
+# # Released: February 6, 2025 | Python: 3.8-3.12 | K8s Provider: 8.4.x
+# AIRFLOW_VERSION = "2.10.5"
+# PYTHON_VERSION = "3.11"
 
-# ============================================================================
-# Constraint file URL (auto-generated from version)
-export CONSTRAINT_URL="https://raw.githubusercontent.com/apache/airflow/constraints-${AIRFLOW_VERSION}/constraints-${PYTHON_VERSION}.txt"
+[hook]
+on-activate = '''
 
 echo ""
 echo "🚀 Apache Airflow Build Environment"
@@ -69,8 +58,9 @@ echo "  2.11.0 - Latest 2.x (Limited Support, Python 3.9+)"
 echo "  2.10.5 - Python 3.8 support (Limited Support)"
 echo ""
 echo "To change version:"
-echo "  • Edit .flox/env/manifest.toml (uncomment desired version)"
-echo "  • Or: AIRFLOW_VERSION=2.11.0 flox activate"
+echo "  • Edit .flox/env/manifest.toml [vars] section"
+echo "  • Uncomment desired version block, comment others"
+echo "  • Rebuild: flox build airflow"
 echo ""
 echo "Available builds:"
 echo "  flox build airflow           - Airflow with Kubernetes support"
@@ -81,7 +71,7 @@ echo "After building:"
 echo "  ./result-airflow/bin/airflow version"
 echo "  source result-airflow/bin/activate"
 echo ""
-echo "📖 See SETUP.md for detailed version information"
+echo "📖 See BUILDING.md for detailed build instructions"
 echo ""
 '''
 
@@ -102,6 +92,7 @@ source "$out/bin/activate"
 pip install --upgrade pip setuptools wheel
 
 # Download constraint file
+CONSTRAINT_URL="https://raw.githubusercontent.com/apache/airflow/constraints-${AIRFLOW_VERSION}/constraints-${PYTHON_VERSION}.txt"
 echo "Downloading constraints from ${CONSTRAINT_URL}..."
 curl -sSL "${CONSTRAINT_URL}" -o /tmp/airflow-constraints.txt
 
@@ -132,6 +123,7 @@ python -m venv "$out"
 source "$out/bin/activate"
 pip install --upgrade pip setuptools wheel
 
+CONSTRAINT_URL="https://raw.githubusercontent.com/apache/airflow/constraints-${AIRFLOW_VERSION}/constraints-${PYTHON_VERSION}.txt"
 curl -sSL "${CONSTRAINT_URL}" -o /tmp/airflow-constraints.txt
 
 echo "Installing apache-airflow with multiple providers..."
@@ -158,6 +150,7 @@ python -m venv "$out"
 source "$out/bin/activate"
 pip install --upgrade pip setuptools wheel
 
+CONSTRAINT_URL="https://raw.githubusercontent.com/apache/airflow/constraints-${AIRFLOW_VERSION}/constraints-${PYTHON_VERSION}.txt"
 curl -sSL "${CONSTRAINT_URL}" -o /tmp/airflow-constraints.txt
 
 echo "Installing apache-airflow (no extra providers)..."
