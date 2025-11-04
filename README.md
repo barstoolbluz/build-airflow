@@ -40,19 +40,31 @@ cd airflow-nix-builds
 # Activate the build environment
 flox activate
 
-# Build Airflow with Kubernetes support
-flox build airflow
+# Build Airflow 3.1.1 with Kubernetes support
+flox build airflow-3-1-1
 
 # Use the built package
-./result-airflow/bin/airflow version
-source result-airflow/bin/activate
+./result-airflow-3-1-1/bin/airflow version
+source result-airflow-3-1-1/bin/activate
 airflow db init
 ```
 
-**Available builds:**
-- `airflow` - Airflow + Kubernetes provider
-- `airflow-full` - Airflow + multiple providers (k8s, postgres, redis, http, ssh)
-- `airflow-minimal` - Minimal Airflow (LocalExecutor only)
+**Available builds (9 total - 3 versions × 3 variants):**
+
+*Airflow 3.1.1 (Latest):*
+- `airflow-3-1-1` - Airflow 3.1.1 + Kubernetes provider
+- `airflow-full-3-1-1` - Airflow 3.1.1 + multiple providers (k8s, postgres, redis, http, ssh)
+- `airflow-minimal-3-1-1` - Minimal Airflow 3.1.1 (LocalExecutor only)
+
+*Airflow 2.11.0:*
+- `airflow-2-11-0` - Airflow 2.11.0 + Kubernetes provider
+- `airflow-full-2-11-0` - Airflow 2.11.0 + multiple providers
+- `airflow-minimal-2-11-0` - Minimal Airflow 2.11.0
+
+*Airflow 2.10.5:*
+- `airflow-2-10-5` - Airflow 2.10.5 + Kubernetes provider
+- `airflow-full-2-10-5` - Airflow 2.10.5 + multiple providers
+- `airflow-minimal-2-10-5` - Minimal Airflow 2.10.5
 
 ### Option 2: Nix Flakes
 
@@ -61,8 +73,8 @@ airflow db init
 git clone https://github.com/barstoolbluz/airflow-nix-builds.git
 cd airflow-nix-builds
 
-# Build with Nix flakes (requires --impure for network access)
-nix build --impure .#airflow
+# Build Airflow 3.1.1 with Nix flakes (requires --impure for network access)
+nix build --impure .#airflow-3-1-1
 
 # Use the built package
 ./result/bin/airflow version
@@ -70,9 +82,28 @@ source result/bin/activate
 airflow db init
 ```
 
-**Available packages:**
-- `airflow` - Airflow + Kubernetes provider
-- `airflow-full` - Airflow + multiple providers
+**Available packages (9 total):**
+
+*Named outputs (explicit versions):*
+- `airflow-3-1-1`, `airflow-full-3-1-1` - Airflow 3.1.1
+- `airflow-2-11-0`, `airflow-full-2-11-0` - Airflow 2.11.0
+- `airflow-2-10-5`, `airflow-full-2-10-5` - Airflow 2.10.5
+
+*Dynamic outputs (respects `AIRFLOW_VERSION` env var):*
+- `airflow` - Basic build (default: 3.1.1)
+- `airflow-full` - Full build (default: 3.1.1)
+
+**Version selection:**
+```bash
+# Use default (3.1.1)
+nix build --impure .#airflow
+
+# Use environment variable
+AIRFLOW_VERSION=2.11.0 nix build --impure .#airflow
+
+# Use named output (recommended)
+nix build --impure .#airflow-2-11-0
+```
 
 ### Option 3: Nix Expression (Planned)
 
@@ -82,39 +113,42 @@ Traditional `nix-build` support is planned for broader Nix community compatibili
 
 ## Version Selection
 
-Switch between Airflow versions by editing configuration files:
+Each Airflow version has its own dedicated build - no configuration editing needed!
 
 ### For Flox Builds
 
-Edit `.flox/env/manifest.toml` and uncomment your desired version:
+Simply build the version you need:
 
-```toml
-# Airflow 3.1.1 (default)
-export AIRFLOW_VERSION="${AIRFLOW_VERSION:-3.1.1}"
-export PYTHON_VERSION="${PYTHON_VERSION:-3.11}"
-
-# # Airflow 2.11.0 (uncomment to use)
-# export AIRFLOW_VERSION="${AIRFLOW_VERSION:-2.11.0}"
-# export PYTHON_VERSION="${PYTHON_VERSION:-3.11}"
-```
-
-Or use runtime override:
 ```bash
-AIRFLOW_VERSION=2.11.0 flox activate
+# Latest stable (3.1.1)
+flox build airflow-3-1-1
+
+# Previous versions
+flox build airflow-2-11-0
+flox build airflow-2-10-5
+
+# Full variants with multiple providers
+flox build airflow-full-3-1-1
+flox build airflow-full-2-11-0
+
+# Minimal variants
+flox build airflow-minimal-3-1-1
 ```
 
 ### For Nix Flakes
 
-Edit `flake.nix` and uncomment your desired version:
+Use named outputs for explicit versions:
 
-```nix
-# Airflow 3.1.1 (default)
-airflowVersion = "3.1.1";
-pythonVersion = "3.11";
+```bash
+# Latest stable (3.1.1) - recommended approach
+nix build --impure .#airflow-3-1-1
 
-# # Airflow 2.11.0 (uncomment to use)
-# airflowVersion = "2.11.0";
-# pythonVersion = "3.11";
+# Previous versions
+nix build --impure .#airflow-2-11-0
+nix build --impure .#airflow-2-10-5
+
+# Or use environment variable with dynamic outputs
+AIRFLOW_VERSION=2.11.0 nix build --impure .#airflow
 ```
 
 ---
@@ -123,6 +157,7 @@ pythonVersion = "3.11";
 
 - **[BUILDING.md](BUILDING.md)** - Detailed build instructions, troubleshooting, production deployment
 - **[SETUP.md](SETUP.md)** - Prerequisites, version details, first-time setup
+- **[CLAUDE.md](CLAUDE.md)** - Maintenance guide for adding new Airflow versions
 - **[Flox Manifest Builds](https://flox.dev/docs/concepts/manifest-builds/)** - Official Flox documentation
 - **[Apache Airflow Docs](https://airflow.apache.org/docs/)** - Official Airflow documentation
 
@@ -154,8 +189,8 @@ This approach:
 
 ```bash
 flox activate
-flox build airflow
-source result-airflow/bin/activate
+flox build airflow-3-1-1
+source result-airflow-3-1-1/bin/activate
 airflow standalone
 ```
 
@@ -172,7 +207,7 @@ environments = [
 
 [hook]
 on-activate = '''
-  source /path/to/result-airflow/bin/activate
+  source /path/to/result-airflow-3-1-1/bin/activate
   export AIRFLOW_HOME="$FLOX_ENV_CACHE/airflow"
 '''
 
@@ -185,7 +220,7 @@ airflow-scheduler.command = "airflow scheduler"
 
 ```dockerfile
 FROM nixos/nix
-RUN nix build --impure github:barstoolbluz/airflow-nix-builds#airflow
+RUN nix build --impure github:barstoolbluz/airflow-nix-builds#airflow-3-1-1
 CMD ["/nix/store/.../result/bin/airflow", "webserver"]
 ```
 
