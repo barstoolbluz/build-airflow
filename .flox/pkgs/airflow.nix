@@ -122,7 +122,7 @@ stdenv.mkDerivation {
   dontPatchShebangs = false;
 
   meta = with lib; {
-    description = "Apache Airflow ${version} - Minimal installation (no providers)";
+    description = "Apache Airflow - Minimal installation (no providers)";
     longDescription = ''
       Apache Airflow ${version} with no extra providers.
       LocalExecutor only, no external integrations.

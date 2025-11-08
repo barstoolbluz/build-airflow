@@ -123,7 +123,7 @@ stdenv.mkDerivation {
   dontPatchShebangs = false;
 
   meta = with lib; {
-    description = "Apache Airflow ${version} with Kubernetes provider";
+    description = "Apache Airflow with Kubernetes provider";
     longDescription = ''
       Apache Airflow ${version} with Kubernetes provider.
       Includes KubernetesPodOperator for running tasks in K8s pods.
