@@ -124,7 +124,7 @@ stdenv.mkDerivation {
   dontPatchShebangs = false;
 
   meta = with lib; {
-    description = "Apache Airflow ${version} with multiple providers including Celery";
+    description = "Apache Airflow ${version} with Kubernetes, Postgres, Redis, SSH, HTTP, and Celery providers";
     longDescription = ''
       Apache Airflow ${version} with multiple providers:
       - Kubernetes (KubernetesPodOperator, KubernetesExecutor)
