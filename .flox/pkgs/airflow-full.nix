@@ -52,6 +52,49 @@ let
     k8sProvider = "N/A";
   };
 
+  # Fixed-output derivation to download pip packages (allowed network access)
+  pipCache = stdenv.mkDerivation {
+    name = "airflow-full-${version}-pip-cache";
+
+    nativeBuildInputs = [ pythonPkg curl cacert ];
+
+    # Placeholder source
+    src = builtins.toFile "requirements.txt" ''
+      apache-airflow[${providerExtras}]==${version}
+    '';
+
+    unpackPhase = ":";
+
+    buildPhase = ''
+      mkdir -p $out
+
+      # Create temporary venv for downloading
+      ${pythonPkg}/bin/python -m venv venv
+      source venv/bin/activate
+
+      pip install --upgrade pip setuptools wheel
+
+      # Download constraints
+      curl -sSL "${constraintUrl}" -o constraints.txt
+
+      # First download build dependencies
+      pip download pip setuptools wheel --dest $out
+
+      # Download all packages without installing, preferring binary wheels
+      pip download \
+        "apache-airflow[${providerExtras}]==${version}" \
+        --constraint constraints.txt \
+        --prefer-binary \
+        --dest $out
+    '';
+
+    installPhase = "true";
+
+    outputHashMode = "recursive";
+    outputHashAlgo = "sha256";
+    outputHash = "sha256-ELYOeeuQmFxIVx+L7ismobwDKkhDR4el1wVLzd30LvU=";
+  };
+
 in
 stdenv.mkDerivation {
   pname = "apache-airflow-full";
@@ -62,8 +105,6 @@ stdenv.mkDerivation {
 
   nativeBuildInputs = [
     pythonPkg
-    curl
-    cacert
   ];
 
   buildInputs = [
@@ -71,8 +112,6 @@ stdenv.mkDerivation {
   ] ++ lib.optionals stdenv.isLinux [
     gcc-unwrapped
   ];
-
-  __noChroot = true;
 
   # Skip unpack phase (we don't have source to unpack)
   unpackPhase = ":";
@@ -90,18 +129,11 @@ stdenv.mkDerivation {
     ${pythonPkg}/bin/python -m venv $out
     source $out/bin/activate
 
-    pip install --upgrade pip setuptools wheel
-
-    # Download constraints
-    echo "Downloading constraints from:"
-    echo "  ${constraintUrl}"
-    curl -sSL "${constraintUrl}" -o constraints.txt
-
-    # Install Airflow with all providers
+    # Install from pre-downloaded packages (no network needed)
     echo ""
-    echo "Installing apache-airflow[${providerExtras}]==${version}..."
-    pip install "apache-airflow[${providerExtras}]==${version}" \
-      --constraint constraints.txt
+    echo "Installing apache-airflow[${providerExtras}]==${version} from cache..."
+    pip install --no-index --find-links ${pipCache} \
+      "apache-airflow[${providerExtras}]==${version}"
 
     # Verify installation
     echo ""
@@ -111,8 +143,6 @@ stdenv.mkDerivation {
     echo "Airflow ${version} with multiple providers installed successfully"
     echo "Providers: kubernetes, postgres, redis, http, ssh, celery"
     echo "Kubernetes provider: ${meta.k8sProvider}"
-
-    rm -f constraints.txt
   '';
 
   installPhase = ''

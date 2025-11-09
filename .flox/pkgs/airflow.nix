@@ -49,6 +49,49 @@ let
     k8sProvider = "N/A";
   };
 
+  # Fixed-output derivation to download pip packages (allowed network access)
+  pipCache = stdenv.mkDerivation {
+    name = "airflow-minimal-${version}-pip-cache";
+
+    nativeBuildInputs = [ pythonPkg curl cacert ];
+
+    # Placeholder source
+    src = builtins.toFile "requirements.txt" ''
+      apache-airflow==${version}
+    '';
+
+    unpackPhase = ":";
+
+    buildPhase = ''
+      mkdir -p $out
+
+      # Create temporary venv for downloading
+      ${pythonPkg}/bin/python -m venv venv
+      source venv/bin/activate
+
+      pip install --upgrade pip setuptools wheel
+
+      # Download constraints
+      curl -sSL "${constraintUrl}" -o constraints.txt
+
+      # First download build dependencies
+      pip download pip setuptools wheel --dest $out
+
+      # Download all packages without installing, preferring binary wheels
+      pip download \
+        "apache-airflow==${version}" \
+        --constraint constraints.txt \
+        --prefer-binary \
+        --dest $out
+    '';
+
+    installPhase = "true";
+
+    outputHashMode = "recursive";
+    outputHashAlgo = "sha256";
+    outputHash = "sha256-oLpg+9pEQKTwgxUK7YCJ5oSYvfO+QAYvMuoBdPlL3RQ=";
+  };
+
 in
 stdenv.mkDerivation {
   pname = "apache-airflow-minimal";
@@ -59,8 +102,6 @@ stdenv.mkDerivation {
 
   nativeBuildInputs = [
     pythonPkg
-    curl
-    cacert
   ];
 
   buildInputs = [
@@ -68,9 +109,6 @@ stdenv.mkDerivation {
   ] ++ lib.optionals stdenv.isLinux [
     gcc-unwrapped  # For libstdc++.so.6 (Airflow 2.x re2 package)
   ];
-
-  # Network access required for pip
-  __noChroot = true;
 
   # Skip unpack phase (we don't have source to unpack)
   unpackPhase = ":";
@@ -87,19 +125,11 @@ stdenv.mkDerivation {
     ${pythonPkg}/bin/python -m venv $out
     source $out/bin/activate
 
-    # Upgrade pip
-    pip install --upgrade pip setuptools wheel
-
-    # Download constraint file
-    echo "Downloading constraints from:"
-    echo "  ${constraintUrl}"
-    curl -sSL "${constraintUrl}" -o constraints.txt
-
-    # Install Airflow (no extras)
+    # Install from pre-downloaded packages (no network needed)
     echo ""
-    echo "Installing apache-airflow==${version} (no providers)..."
-    pip install "apache-airflow==${version}" \
-      --constraint constraints.txt
+    echo "Installing apache-airflow==${version} from cache (no providers)..."
+    pip install --no-index --find-links ${pipCache} \
+      "apache-airflow==${version}"
 
     # Verify installation
     echo ""
@@ -108,9 +138,6 @@ stdenv.mkDerivation {
     echo "========================================="
     echo "Airflow ${version} installed successfully (minimal variant)"
     echo "Variant: Minimal (LocalExecutor only)"
-
-    # Cleanup
-    rm -f constraints.txt
   '';
 
   installPhase = ''
