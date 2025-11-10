@@ -78,7 +78,7 @@ let
       curl -sSL "${constraintUrl}" -o constraints.txt
 
       # First download build dependencies
-      pip download pip setuptools wheel --dest $out
+      pip download pip setuptools wheel setuptools_scm --dest $out
 
       # Download all packages without installing, preferring binary wheels
       pip download \
