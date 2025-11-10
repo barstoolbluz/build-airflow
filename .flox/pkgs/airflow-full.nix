@@ -93,12 +93,13 @@ let
     outputHashMode = "recursive";
     outputHashAlgo = "sha256";
     # Platform-specific hashes (pip downloads different wheels per platform)
+    # PLACEHOLDER - rebuild needed after adding setuptools_scm
     outputHash =
       if stdenv.isDarwin && stdenv.isAarch64
-        then "sha256-NIfYuO9f8h6mdAZteTbMubOju4oTm3tiHyA9HfWp7DE="  # macOS Apple Silicon
+        then "sha256-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="  # macOS Apple Silicon - UPDATE AFTER BUILD
       else if stdenv.isDarwin
-        then "sha256-azmEnrPAkkvHsXr6YJlmJ1PFHH12VHp85aXqqgLNzyU="  # macOS Intel
-      else "sha256-rgJkxVPMjxpWyMhL3GltBMs1OCzJLEp8z+6OJBLXGro="; # Linux
+        then "sha256-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="  # macOS Intel - UPDATE AFTER BUILD
+      else "sha256-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="; # Linux - UPDATE AFTER BUILD
   };
 
 in
