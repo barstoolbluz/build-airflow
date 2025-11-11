@@ -98,7 +98,7 @@ let
         then "sha256-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="  # macOS Apple Silicon - UPDATE AFTER BUILD
       else if stdenv.isDarwin
         then "sha256-1MXmUDo1U1l+WCLmiotIyjBzGFaJNNRFXowXUxarrTk="  # macOS Intel
-      else "sha256-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="; # Linux - UPDATE AFTER BUILD
+      else "sha256-fVLEThitEGn/lGThhzHY8LIuCUwu2tQsFmZOWcyNXlI="; # Linux
   };
 
 in
