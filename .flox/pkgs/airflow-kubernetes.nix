@@ -100,7 +100,7 @@ let
     # Platform-specific hashes (pip downloads different wheels per platform)
     outputHash =
       if stdenv.isDarwin && stdenv.isAarch64
-        then "sha256-GmpYhoMp/3UTGLsOkSpC3+uuz8ZMo4UCJ4whLyH+XFM="  # macOS Apple Silicon
+        then "sha256-PDLCGl0cxszZlHvi37mTWFbcRy7SI9tH7j/Sg8MkTj8="  # macOS Apple Silicon
       else if stdenv.isDarwin
         then "sha256-p/dPioX3+W7UIVVmQ9brFLJ7+ebkQQBJV/UP2vdp5PA="  # macOS Intel
       else if stdenv.isLinux && stdenv.isAarch64
