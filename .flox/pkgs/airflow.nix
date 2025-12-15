@@ -10,11 +10,16 @@ let
   # ===========================================================================
   # USER CONFIGURATION - Edit these values
   # ===========================================================================
-  version = "3.1.1";           # Airflow version to build
-  pythonVersion = "3.11";      # Python version for constraint file URL
+  version = "3.1.3";           # Airflow version to build
+  pythonVersion = "3.12";      # Python version for constraint file URL
 
   # Version metadata for reference
   versionInfo = {
+    "3.1.3" = {
+      pythonVersions = "3.9, 3.10, 3.11, 3.12, 3.13";
+      support = "Active Support";
+      k8sProvider = "10.9.0";
+    };
     "3.1.1" = {
       pythonVersions = "3.9, 3.10, 3.11, 3.12";
       support = "Active Support";
