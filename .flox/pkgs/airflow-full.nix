@@ -102,7 +102,7 @@ let
       if stdenv.isDarwin && stdenv.isAarch64
         then "sha256-xQfv6y3N1K+WtVz4QTZQtm4pa1d+BekknLYsonNIdrg="  # macOS Apple Silicon
       else if stdenv.isDarwin
-        then "sha256-QhTQKhsbsJCWeBkp9feOFDDeOk6hDjktNryYd35S9mM="  # macOS Intel
+        then "sha256-RBbniV7ytkvH9Ne5hFWM34wFMoRQ4atc3hgndz7syQs="  # macOS Intel
       else "sha256-TanhDGwO1ltN5xU8LEbx+VgQJfA6HheXRV3peivkg04="; # Linux
   };
 
