@@ -1,5 +1,5 @@
 {
-  description = "Apache Airflow (3.1.1, 2.11.0, 2.10.5) with Kubernetes support - Multi-version builds via Nix";
+  description = "Apache Airflow (3.1.3, 3.1.1, 2.11.0, 2.10.5) with Kubernetes support - Multi-version builds via Nix";
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
@@ -16,13 +16,21 @@
         # ============================================================================
         # All supported Airflow versions with their metadata
         versions = {
+          "3.1.3" = {
+            python = "3.12";
+            k8sProvider = "10.9.0";
+            releaseDate = "2025-11-14";
+            support = "Active Support";
+            pythonVersions = "3.9, 3.10, 3.11, 3.12, 3.13";
+            recommended = true;
+          };
           "3.1.1" = {
             python = "3.11";
             k8sProvider = "10.8.2";
             releaseDate = "2025-10-27";
             support = "Active Support";
             pythonVersions = "3.9, 3.10, 3.11, 3.12";
-            recommended = true;
+            recommended = false;
           };
           "2.11.0" = {
             python = "3.11";
@@ -46,14 +54,14 @@
         # VERSION SELECTION (Hybrid Approach)
         # ============================================================================
         # Three ways to select version:
-        #   1. Default: Uses 3.1.1 (no action needed)
+        #   1. Default: Uses 3.1.3 (no action needed)
         #   2. Environment variable: AIRFLOW_VERSION=2.11.0 nix build --impure .#airflow
         #   3. Named output: nix build --impure .#airflow-2-11-0
         # ============================================================================
 
         # Check environment variable, fallback to default
         envAirflowVersion = builtins.getEnv "AIRFLOW_VERSION";
-        defaultVersion = "3.1.1";
+        defaultVersion = "3.1.3";
         selectedVersion = if envAirflowVersion != "" then envAirflowVersion else defaultVersion;
 
         # Validate version exists
@@ -71,7 +79,9 @@
                  else if pythonVersion == "3.10" then pkgs.python310
                  else if pythonVersion == "3.9" then pkgs.python39
                  else if pythonVersion == "3.8" then pkgs.python38
-                 else pkgs.python311;
+                 else if pythonVersion == "3.12" then pkgs.python312
+                 else if pythonVersion == "3.13" then pkgs.python313
+                 else pkgs.python312;
 
         # ============================================================================
         # BUILD FUNCTION FACTORY
@@ -85,7 +95,9 @@
                         else if pythonVer == "3.10" then pkgs.python310
                         else if pythonVer == "3.9" then pkgs.python39
                         else if pythonVer == "3.8" then pkgs.python38
-                        else pkgs.python311;
+                        else if pythonVer == "3.12" then pkgs.python312
+                        else if pythonVer == "3.13" then pkgs.python313
+                        else pkgs.python312;
             constraintUrl = "https://raw.githubusercontent.com/apache/airflow/constraints-${airflowVersion}/constraints-${pythonVer}.txt";
 
             # Provider extras based on build type
@@ -198,6 +210,10 @@
           airflow-full = mkAirflow selectedVersion "full";
 
           # Named outputs for explicit version selection
+          # Airflow 3.1.3
+          airflow-3-1-3 = mkAirflow "3.1.3" "basic";
+          airflow-full-3-1-3 = mkAirflow "3.1.3" "full";
+
           # Airflow 3.1.1
           airflow-3-1-1 = mkAirflow "3.1.1" "basic";
           airflow-full-3-1-1 = mkAirflow "3.1.1" "full";
@@ -234,7 +250,8 @@
             echo "  Support: ${versionMeta.support}"
             echo ""
             echo "Supported Versions:"
-            echo "  3.1.1  - Latest (Active Support) ⭐"
+            echo "  3.1.3  - Latest (Active Support) ⭐"
+            echo "  3.1.1  - Previous stable (Active Support)"
             echo "  2.11.0 - Latest 2.x (Limited Support, Python 3.9+)"
             echo "  2.10.5 - Python 3.8 support (Limited Support)"
             echo ""
@@ -248,10 +265,11 @@
             echo "     AIRFLOW_VERSION=2.10.5 nix build --impure .#airflow-full"
             echo ""
             echo "  3. Named outputs:"
+            echo "     nix build --impure .#airflow-3-1-3"
             echo "     nix build --impure .#airflow-3-1-1"
             echo "     nix build --impure .#airflow-2-11-0"
             echo "     nix build --impure .#airflow-2-10-5"
-            echo "     nix build --impure .#airflow-full-3-1-1"
+            echo "     nix build --impure .#airflow-full-3-1-3"
             echo ""
             echo "List all outputs:"
             echo "  nix flake show"

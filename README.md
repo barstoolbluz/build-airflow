@@ -229,7 +229,7 @@ CMD ["/nix/store/.../result/bin/airflow", "webserver"]
 ## Contributing
 
 Contributions welcome! Please:
-1. Test your changes with all three supported versions
+1. Test your changes with all four supported versions
 2. Update documentation (BUILDING.md, SETUP.md)
 3. Ensure both Flox and Nix builds work
 

@@ -24,7 +24,12 @@ echo "🚀 Apache Airflow Build Environment"
 echo ""
 echo "Supported Versions & Builds:"
 echo ""
-echo "Airflow 3.1.1 (Active Support) ⭐"
+echo "Airflow 3.1.3 (Active Support) ⭐"
+echo "  flox build airflow-3-1-3         - Kubernetes provider"
+echo "  flox build airflow-full-3-1-3    - Multiple providers"
+echo "  flox build airflow-minimal-3-1-3 - Minimal (no providers)"
+echo ""
+echo "Airflow 3.1.1 (Active Support)"
 echo "  flox build airflow-3-1-1         - Kubernetes provider"
 echo "  flox build airflow-full-3-1-1    - Multiple providers"
 echo "  flox build airflow-minimal-3-1-1 - Minimal (no providers)"
@@ -40,16 +45,110 @@ echo "  flox build airflow-full-2-10-5    - Multiple providers"
 echo "  flox build airflow-minimal-2-10-5 - Minimal (no providers)"
 echo ""
 echo "After building:"
-echo "  ./result-airflow-3-1-1/bin/airflow version"
-echo "  source result-airflow-3-1-1/bin/activate"
+echo "  ./result-airflow-3-1-3/bin/airflow version"
+echo "  source result-airflow-3-1-3/bin/activate"
 echo ""
-echo "Or use helper: activate-airflow airflow-3-1-1"
+echo "Or use helper: activate-airflow airflow-3-1-3"
 echo ""
 echo "📖 See BUILDING.md for detailed build instructions"
 echo ""
 '''
 
 [build]
+# ============================================================================
+# AIRFLOW 3.1.3 BUILDS (Active Support, Python 3.9-3.13, K8s Provider 10.9.0)
+# ============================================================================
+
+[build.airflow-3-1-3]
+version = "3.1.3"
+description = "Apache Airflow 3.1.3 with Kubernetes provider (Active Support, Python 3.9-3.13)"
+command = '''
+AIRFLOW_VERSION="3.1.3"
+PYTHON_VERSION="3.12"
+
+echo "Building Apache Airflow ${AIRFLOW_VERSION} with Kubernetes support..."
+
+python -m venv "$out"
+source "$out/bin/activate"
+pip install --upgrade pip setuptools wheel
+
+CONSTRAINT_URL="https://raw.githubusercontent.com/apache/airflow/constraints-${AIRFLOW_VERSION}/constraints-${PYTHON_VERSION}.txt"
+echo "Downloading constraints from ${CONSTRAINT_URL}..."
+curl -sSL "${CONSTRAINT_URL}" -o /tmp/airflow-constraints.txt
+
+echo "Installing apache-airflow[cncf.kubernetes]==${AIRFLOW_VERSION}..."
+pip install "apache-airflow[cncf.kubernetes]==${AIRFLOW_VERSION}" \
+  --constraint /tmp/airflow-constraints.txt
+
+echo ""
+echo "✅ Installation complete!"
+airflow version
+echo ""
+echo "Kubernetes provider:"
+python -c "from airflow.providers.cncf.kubernetes.operators.pod import KubernetesPodOperator; print('  KubernetesPodOperator: OK')"
+
+rm -f /tmp/airflow-constraints.txt
+'''
+
+[build.airflow-full-3-1-3]
+version = "3.1.3"
+description = "Apache Airflow 3.1.3 with multiple providers (Active Support, Python 3.9-3.13)"
+command = '''
+AIRFLOW_VERSION="3.1.3"
+PYTHON_VERSION="3.12"
+
+echo "Building Apache Airflow ${AIRFLOW_VERSION} with multiple providers..."
+
+python -m venv "$out"
+source "$out/bin/activate"
+pip install --upgrade pip setuptools wheel
+
+CONSTRAINT_URL="https://raw.githubusercontent.com/apache/airflow/constraints-${AIRFLOW_VERSION}/constraints-${PYTHON_VERSION}.txt"
+echo "Downloading constraints from ${CONSTRAINT_URL}..."
+curl -sSL "${CONSTRAINT_URL}" -o /tmp/airflow-constraints.txt
+
+echo "Installing apache-airflow with multiple providers..."
+pip install "apache-airflow[cncf.kubernetes,postgres,redis,http,ssh]==${AIRFLOW_VERSION}" \
+  --constraint /tmp/airflow-constraints.txt
+
+echo ""
+echo "✅ Full installation complete!"
+airflow version
+echo ""
+echo "Installed providers:"
+airflow providers list 2>/dev/null | grep -E "apache-airflow-providers-(cncf-kubernetes|postgres|redis|http|ssh)" || echo "  (run 'airflow providers list' after activation)"
+
+rm -f /tmp/airflow-constraints.txt
+'''
+
+[build.airflow-minimal-3-1-3]
+version = "3.1.3"
+description = "Minimal Apache Airflow 3.1.3 (LocalExecutor only, Active Support, Python 3.9-3.13)"
+command = '''
+AIRFLOW_VERSION="3.1.3"
+PYTHON_VERSION="3.12"
+
+echo "Building minimal Apache Airflow ${AIRFLOW_VERSION}..."
+
+python -m venv "$out"
+source "$out/bin/activate"
+pip install --upgrade pip setuptools wheel
+
+CONSTRAINT_URL="https://raw.githubusercontent.com/apache/airflow/constraints-${AIRFLOW_VERSION}/constraints-${PYTHON_VERSION}.txt"
+echo "Downloading constraints from ${CONSTRAINT_URL}..."
+curl -sSL "${CONSTRAINT_URL}" -o /tmp/airflow-constraints.txt
+
+echo "Installing apache-airflow (no extra providers)..."
+pip install "apache-airflow==${AIRFLOW_VERSION}" \
+  --constraint /tmp/airflow-constraints.txt
+
+echo ""
+echo "✅ Minimal installation complete!"
+airflow version
+
+rm -f /tmp/airflow-constraints.txt
+'''
+
 # ============================================================================
 # AIRFLOW 3.1.1 BUILDS (Active Support, Python 3.9-3.12, K8s Provider 10.8.2)
 # ============================================================================
@@ -327,7 +426,7 @@ rm -f /tmp/airflow-constraints.txt
 bash = '''
 # Helper function to activate built Airflow
 activate-airflow() {
-    local build_name="${1:-airflow-3-1-1}"
+    local build_name="${1:-airflow-3-1-3}"
     if [ -f "result-${build_name}/bin/activate" ]; then
         echo "Activating ${build_name}..."
         source "result-${build_name}/bin/activate"
@@ -336,6 +435,7 @@ activate-airflow() {
         echo "❌ Build not found. Run: flox build ${build_name}"
         echo ""
         echo "Available builds:"
+        echo "  airflow-3-1-3, airflow-full-3-1-3, airflow-minimal-3-1-3"
         echo "  airflow-3-1-1, airflow-full-3-1-1, airflow-minimal-3-1-1"
         echo "  airflow-2-11-0, airflow-full-2-11-0, airflow-minimal-2-11-0"
         echo "  airflow-2-10-5, airflow-full-2-10-5, airflow-minimal-2-10-5"
@@ -346,7 +446,7 @@ export -f activate-airflow
 
 # Helper to build and activate in one command
 build-and-activate() {
-    local build_name="${1:-airflow-3-1-1}"
+    local build_name="${1:-airflow-3-1-3}"
     echo "Building ${build_name}..."
     flox build "${build_name}" && activate-airflow "${build_name}"
 }
@@ -355,7 +455,7 @@ export -f build-and-activate
 
 zsh = '''
 activate-airflow() {
-    local build_name="${1:-airflow-3-1-1}"
+    local build_name="${1:-airflow-3-1-3}"
     if [ -f "result-${build_name}/bin/activate" ]; then
         echo "Activating ${build_name}..."
         source "result-${build_name}/bin/activate"
@@ -364,6 +464,7 @@ activate-airflow() {
         echo "❌ Build not found. Run: flox build ${build_name}"
         echo ""
         echo "Available builds:"
+        echo "  airflow-3-1-3, airflow-full-3-1-3, airflow-minimal-3-1-3"
         echo "  airflow-3-1-1, airflow-full-3-1-1, airflow-minimal-3-1-1"
         echo "  airflow-2-11-0, airflow-full-2-11-0, airflow-minimal-2-11-0"
         echo "  airflow-2-10-5, airflow-full-2-10-5, airflow-minimal-2-10-5"
@@ -372,7 +473,7 @@ activate-airflow() {
 }
 
 build-and-activate() {
-    local build_name="${1:-airflow-3-1-1}"
+    local build_name="${1:-airflow-3-1-3}"
     echo "Building ${build_name}..."
     flox build "${build_name}" && activate-airflow "${build_name}"
 }
@@ -382,7 +483,7 @@ fish = '''
 function activate-airflow
     set build_name $argv[1]
     if test -z "$build_name"
-        set build_name "airflow-3-1-1"
+        set build_name "airflow-3-1-3"
     end
 
     if test -f "result-$build_name/bin/activate"
@@ -393,6 +494,7 @@ function activate-airflow
         echo "❌ Build not found. Run: flox build $build_name"
         echo ""
         echo "Available builds:"
+        echo "  airflow-3-1-3, airflow-full-3-1-3, airflow-minimal-3-1-3"
         echo "  airflow-3-1-1, airflow-full-3-1-1, airflow-minimal-3-1-1"
         echo "  airflow-2-11-0, airflow-full-2-11-0, airflow-minimal-2-11-0"
         echo "  airflow-2-10-5, airflow-full-2-10-5, airflow-minimal-2-10-5"
@@ -403,7 +505,7 @@ end
 function build-and-activate
     set build_name $argv[1]
     if test -z "$build_name"
-        set build_name "airflow-3-1-1"
+        set build_name "airflow-3-1-3"
     end
 
     echo "Building $build_name..."
