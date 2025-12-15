@@ -100,7 +100,7 @@ let
         then "sha256-Gsrz5rrDXdLP2N5D326HmfyAXODmbzGB1vr+hozV8tE="  # macOS Apple Silicon
       else if stdenv.isDarwin
         then "sha256-OEOCk0VPV0IfT/YG15LUV7w2QFfLbSSU1rEB4SsKobE="  # macOS Intel
-      else "sha256-fvRDS+zOFHhJO619xt9D99wi5pCL7XZHttBbYhabRFM="; # Linux
+      else "sha256-2onIkd3Ov6F3qrqJzgLtz7VhdOSpmtN8xHm/h7VmlSU="; # Linux
   };
 
 in
